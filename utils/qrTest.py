@@ -58,47 +58,66 @@ if __name__ == '__main__':
 
     # Read image
     image = cv2.imread(imagePath)
-    #cv2.imshow('image', image)
-    #cv2.waitKey(0)
 
-    decodedObjects = pyzbar.decode(image)
 
-    # Print results
-    for obj in decodedObjects:
-        print('Type : ', obj.type)
-        print('Data : ', obj.data,'\n')
-        
-        # Points start from top-left and progress CCW
-        points = obj.polygon
+    # Set desired video resolution, framerate and logging offset
+    resolution = (1280,720)
+    fps = 15
 
-        # Number of corners
-        n = len(points)
+	# Create video capture object 
+    videoCapture = cv2.VideoCapture(0)
 
-        # Get center of QR code
-        xCoordinates = [points[i].x for i in range(n)]
-        yCoordinates = [points[i].y for i in range(n)]
+    while(videoCapture.isOpened()):
 
-        centerX = int((max(xCoordinates) + min(xCoordinates)) / 2)
-        centerY = int((max(yCoordinates) + min(yCoordinates)) / 2)
+        # Grab the current frame
+        ret, image = videoCapture.read()
 
-        # Calculate average pixel height of QR code
-        h = ((points[1].y - points[0].y) + (points[2].y - points[3].y)) / 2
-        print(h)
+        decodedObjects = pyzbar.decode(image)
 
-        # Calculate distance to QR code
-        distance = objectHeight * focalLength * pixPerMil / h
+        # Print results
+        for obj in decodedObjects:
+            print('Type : ', obj.type)
+            print('Data : ', obj.data,'\n')
+            
+            # Points start from top-left and progress CCW
+            points = obj.polygon
 
-        # Draw QR code boundary
-        for i in range(0, n):
-            print(points[i])
-            cv2.line(image, points[i], points[(i+1) % n], color=(255,0,0), thickness=3)
-        
-        # Print distance on QR code in image
-        cv2.putText(image, str(round(distance, 1)) + 'cm', (centerX,centerY), \
-				cv2.FONT_HERSHEY_SIMPLEX, 1, \
-				color=(0,0,255), thickness=3)
+            # Number of corners
+            n = len(points)
 
-    # Display results 
-    cv2.imshow("Results", image)
-    cv2.waitKey(0)
+            # Get center of QR code
+            xCoordinates = [points[i].x for i in range(n)]
+            yCoordinates = [points[i].y for i in range(n)]
+
+            centerX = int((max(xCoordinates) + min(xCoordinates)) / 2)
+            centerY = int((max(yCoordinates) + min(yCoordinates)) / 2)
+
+            # Calculate average pixel height of QR code
+            h = ((points[1].y - points[0].y) + (points[2].y - points[3].y)) / 2
+            print(h)
+
+            # Calculate distance to QR code
+            distance = objectHeight * focalLength * pixPerMil / h
+
+            # Draw QR code boundary
+            for i in range(0, n):
+                print(points[i])
+                cv2.line(image, points[i], points[(i+1) % n], color=(255,0,0), thickness=3)
+            
+            # Print distance on QR code in image
+            cv2.putText(image, str(round(distance, 1)) + 'cm', (centerX,centerY), \
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, \
+                    color=(0,0,255), thickness=3)
+
+        # Display results 
+        cv2.imshow("Results", image)
+
+        # Exit if the user presses 'q'
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Release video and file object handles
+    videoCapture.release()
+
+    print('Video object handle closed')
 
