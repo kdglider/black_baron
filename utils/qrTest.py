@@ -51,8 +51,11 @@ if __name__ == '__main__':
     sensorSizeY = 2.76	    # mm
     sensorResY = 2464	    # px
     focalLength = 3.04	    # mm
-    pixPerMil = sensorResY / sensorSizeY	# px/mm
     objectHeight = 3.175	# cm
+    # Account for 2x2 binning if resolution is (1280, 720)
+    # https://picamera.readthedocs.io/en/release-1.12/fov.html
+    pixPerMil = (sensorResY/2) / sensorSizeY	# px/mm
+    
 
     imagePath = '../Test_Images/QRTest1.jpg'
 
