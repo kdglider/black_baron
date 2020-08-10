@@ -3,11 +3,15 @@ from picamera import PiCamera
 import time
 import cv2
 
+resolution = (640, 480)
+#resolution = (1280, 720)
+#resolution = (1920, 1080)
+
 # Initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
-camera.resolution = (1280, 720)
+camera.resolution = resolution
 camera.framerate = 30
-rawCapture = PiRGBArray(camera, size=(1280, 720))
+rawCapture = PiRGBArray(camera, size=resolution)
 
 # Allow the camera to warmup
 time.sleep(0.1)
@@ -27,6 +31,7 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
 	# Clear the stream in preparation for the next frame
 	rawCapture.truncate(0)
+	#rawCapture.seek(0)
 
 	# If the s key is pressed, save the image and break from the loop
 	if key == ord("s"):

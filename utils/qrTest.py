@@ -41,83 +41,86 @@ def display(im, decodedObjects):
     cv2.waitKey(0)
 
   
-# Main 
+
 if __name__ == '__main__':
-    ## Raspberry Pi Camera v2 Specifications
+	## Raspberry Pi Camera v2 Specifications
 	# Resolution: 	3280 × 2464
 	# Sensor Size: 	3.68 x 2.76 mm
 	# Focal Length: 3.04 mm
 
-    sensorSizeY = 2.76	    # mm
-    sensorResY = 2464	    # px
-    focalLength = 3.04	    # mm
-    pixPerMil = sensorResY / sensorSizeY	# px/mm
-    objectHeight = 3.175	# cm
+	sensorSizeY = 2.76	    # mm
+	sensorResY = 2464	    # px
+	focalLength = 3.04	    # mm
+	pixPerMil = sensorResY / sensorSizeY	# px/mm
+	objectHeight = 3.175	# cm
 
-    imagePath = '../Test_Images/QRTest1.jpg'
+	imagePath = '../Test_Images/QRTest1.jpg'
 
-    # Read image
-    image = cv2.imread(imagePath)
+	# Read image
+	image = cv2.imread(imagePath)
 
 
-    # Set desired video resolution, framerate and logging offset
-    resolution = (1280,720)
-    fps = 15
+	# Set desired video resolution, framerate and logging offset
+	resolution = (1280,720)
+	fps = 15
 
 	# Create video capture object 
-    videoCapture = cv2.VideoCapture(0)
+	videoCapture = cv2.VideoCapture(0)
 
-    while(videoCapture.isOpened()):
+	while(videoCapture.isOpened()):
 
-        # Grab the current frame
-        ret, image = videoCapture.read()
+		# Grab the current frame
+		ret, image = videoCapture.read()
 
-        decodedObjects = pyzbar.decode(image)
+		# Flip images about both axes (rotate 90 deg)
+		image = cv2.flip(image, -1)
 
-        # Print results
-        for obj in decodedObjects:
-            print('Type : ', obj.type)
-            print('Data : ', obj.data,'\n')
-            
-            # Points start from top-left and progress CCW
-            points = obj.polygon
+		decodedObjects = pyzbar.decode(image)
 
-            # Number of corners
-            n = len(points)
+		# Print results
+		for obj in decodedObjects:
+			print('Type : ', obj.type)
+			print('Data : ', obj.data,'\n')
+			
+			# Points start from top-left and progress CCW
+			points = obj.polygon
 
-            # Get center of QR code
-            xCoordinates = [points[i].x for i in range(n)]
-            yCoordinates = [points[i].y for i in range(n)]
+			# Number of corners
+			n = len(points)
 
-            centerX = int((max(xCoordinates) + min(xCoordinates)) / 2)
-            centerY = int((max(yCoordinates) + min(yCoordinates)) / 2)
+			# Get center of QR code
+			xCoordinates = [points[i].x for i in range(n)]
+			yCoordinates = [points[i].y for i in range(n)]
 
-            # Calculate average pixel height of QR code
-            h = ((points[1].y - points[0].y) + (points[2].y - points[3].y)) / 2
-            print(h)
+			centerX = int((max(xCoordinates) + min(xCoordinates)) / 2)
+			centerY = int((max(yCoordinates) + min(yCoordinates)) / 2)
 
-            # Calculate distance to QR code
-            distance = objectHeight * focalLength * pixPerMil / h
+			# Calculate average pixel height of QR code
+			h = ((points[1].y - points[0].y) + (points[2].y - points[3].y)) / 2
+			print(h)
 
-            # Draw QR code boundary
-            for i in range(0, n):
-                print(points[i])
-                cv2.line(image, points[i], points[(i+1) % n], color=(255,0,0), thickness=3)
-            
-            # Print distance on QR code in image
-            cv2.putText(image, str(round(distance, 1)) + 'cm', (centerX,centerY), \
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, \
-                    color=(0,0,255), thickness=3)
+			# Calculate distance to QR code
+			distance = objectHeight * focalLength * pixPerMil / h
 
-        # Display results 
-        cv2.imshow("Results", image)
+			# Draw QR code boundary
+			for i in range(0, n):
+			    print(points[i])
+			    cv2.line(image, points[i], points[(i+1) % n], color=(255,0,0), thickness=3)
+			
+			# Print distance on QR code in image
+			cv2.putText(image, str(round(distance, 1)) + 'cm', (centerX,centerY), \
+			        cv2.FONT_HERSHEY_SIMPLEX, 1, \
+			        color=(0,0,255), thickness=3)
 
-        # Exit if the user presses 'q'
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+		# Display results 
+		cv2.imshow("Results", image)
 
-    # Release video and file object handles
-    videoCapture.release()
+		# Exit if the user presses 'q'
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+		    break
 
-    print('Video object handle closed')
+	# Release video and file object handles
+	videoCapture.release()
+
+	print('Video object handle closed')
 
